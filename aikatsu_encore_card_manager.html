@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fff7fb">
+<title>アイカツアンコール カード管理</title>
+<style>
+:root{--bg:#fff8fc;--card:#fff;--text:#302b32;--muted:#827783;--line:#eadfe8;--accent:#e77ab0;--accent2:#8d78df;--danger:#df5b68;--shadow:0 8px 24px rgba(80,45,80,.08)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#fff7fb 0,#f8f5ff 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif}
+header{position:sticky;top:0;z-index:10;background:rgba(255,250,253,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:14px max(16px,calc((100% - 1200px)/2))}
+.header-inner{max-width:1200px;margin:auto;display:flex;align-items:center;gap:12px}.logo{font-size:20px;font-weight:800;letter-spacing:.02em;white-space:nowrap}.logo span{color:var(--accent)}
+main{max-width:1200px;margin:auto;padding:18px 16px 50px}
+.toolbar{display:grid;grid-template-columns:1fr auto auto;gap:10px;margin-bottom:14px}
+input,select,button{font:inherit}input[type=text],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--text);outline:none}
+input[type=text]:focus,select:focus{border-color:#d89ac0;box-shadow:0 0 0 3px rgba(231,122,176,.12)}
+button{border:0;border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--text)}
+button.primary{background:linear-gradient(135deg,#e985b8,#a184e8);color:#fff;border:0;box-shadow:0 5px 14px rgba(170,100,170,.2)}
+button.danger{color:var(--danger)}button.small{padding:7px 9px;font-size:12px}
+.filters{background:rgba(255,255,255,.84);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:18px;box-shadow:var(--shadow)}
+.filter-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.filter-label{font-size:11px;color:var(--muted);margin:0 0 4px 2px}
+.stats{display:flex;justify-content:space-between;align-items:center;margin:12px 2px;color:var(--muted);font-size:13px}.stats b{color:var(--text)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}
+.card{background:white;border:1px solid var(--line);border-radius:17px;overflow:hidden;box-shadow:var(--shadow);position:relative}
+.thumb{aspect-ratio:3/4;background:#f1edf3;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}.thumb img{width:100%;height:100%;object-fit:cover}.noimg{font-size:40px;opacity:.25}
+.cardbody{padding:10px}.name{font-weight:800;font-size:14px;line-height:1.35;min-height:19px}.meta{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.6}.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.chip{font-size:10px;padding:3px 6px;border-radius:999px;background:#f6eef5;color:#6c5268}.cardactions{display:flex;gap:6px;margin-top:9px}.cardactions button{flex:1}
+.empty{padding:55px 20px;text-align:center;color:var(--muted);background:rgba(255,255,255,.7);border:1px dashed var(--line);border-radius:18px}
+dialog{border:0;border-radius:20px;padding:0;width:min(620px,calc(100% - 24px));box-shadow:0 24px 80px rgba(40,20,50,.25)}dialog::backdrop{background:rgba(40,25,45,.4);backdrop-filter:blur(3px)}
+.modal{padding:20px}.modal h2{margin:0 0 14px;font-size:19px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field.full{grid-column:1/-1}.field label{display:block;font-size:12px;color:var(--muted);margin:0 0 5px 2px}.field input,.field select{padding:10px}
+.preview{height:170px;border-radius:14px;background:#f4eff4;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px}.preview img{max-width:100%;max-height:100%;object-fit:contain}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.note{font-size:11px;color:var(--muted);line-height:1.6;margin-top:10px}
+.filebtn{position:relative;overflow:hidden}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+@media(max-width:720px){.toolbar{grid-template-columns:1fr 1fr}.toolbar .search{grid-column:1/-1}.filter-grid{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr);gap:10px}.logo{font-size:17px}.header-inner{justify-content:space-between}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header><div class="header-inner"><div class="logo">🎀 アイカツ<span>アンコール</span> カード管理</div><div style="font-size:12px;color:var(--muted)">端末内保存</div></div></header>
+<main>
+  <div class="toolbar">
+    <input class="search" id="search" type="text" placeholder="🔎 カード名・弾数・ブランドなどで検索">
+    <label class="filebtn"><button type="button">📷 写真から追加</button><input id="photoInput" type="file" accept="image/*" capture="environment" multiple></label>
+    <button class="primary" id="addBtn">＋ カード追加</button>
+  </div>
+
+  <div class="filters">
+    <div class="filter-grid">
+      <div><div class="filter-label">弾数</div><select id="series"><option value="">すべて</option></select></div>
+      <div><div class="filter-label">プロモ</div><select id="promo"><option value="">すべて</option><option>通常</option><option>プロモ</option></select></div>
+      <div><div class="filter-label">タイプ</div><select id="type"><option value="">すべて</option></select></div>
+      <div><div class="filter-label">ブランド</div><select id="brand"><option value="">すべて</option></select></div>
+      <div><div class="filter-label">レア度</div><select id="rarity"><option value="">すべて</option></select></div>
+      <div><div class="filter-label">交換区分</div><select id="trade"><option value="">すべて</option><option>求</option><option>譲</option></select></div>
+    </div>
+    <div class="stats"><span id="count">0枚</span><button class="small" id="clearFilters">フィルターをリセット</button></div>
+  </div>
+
+  <div id="grid" class="grid"></div>
+</main>
+
+<dialog id="dlg">
+  <div class="modal">
+    <h2 id="dlgTitle">カードを追加</h2>
+    <div class="preview" id="preview"><span class="noimg">🃏</span></div>
+    <div class="formgrid">
+      <div class="field full"><label>カード名</label><input id="name" type="text" placeholder="例：○○コーデ"></div>
+      <div class="field"><label>弾数</label><input id="f_series" type="text" placeholder="例：第1弾"></div>
+      <div class="field"><label>プロモ</label><select id="f_promo"><option>通常</option><option>プロモ</option></select></div>
+      <div class="field"><label>タイプ</label><input id="f_type" type="text" placeholder="例：キュート"></div>
+      <div class="field"><label>ブランド</label><input id="f_brand" type="text" placeholder="例：Angely Sugar"></div>
+      <div class="field"><label>レア度</label><input id="f_rarity" type="text" placeholder="例：N / R / SR / PR"></div>
+      <div class="field"><label>交換区分</label><select id="f_trade"><option value="">未設定</option><option value="求">求（欲しい）</option><option value="譲">譲（譲れる）</option></select></div>
+      <div class="field"><label>カード番号</label><input id="f_number" type="text" placeholder="例：01-01"></div>
+      <div class="field full"><label>メモ</label><input id="f_memo" type="text" placeholder="所持・未所持、状態など"></div>
+    </div>
+    <div class="note">画像とデータはこのブラウザの端末内に保存されます。ブラウザのデータ削除や端末変更で消える可能性があるため、定期的にバックアップしてください。</div>
+    <div class="modal-actions"><button id="cancel">キャンセル</button><button class="primary" id="save">保存</button></div>
+  </div>
+</dialog>
+
+<script>
+const DB='aikatsuEncoreDB', STORE='cards';
+let db, cards=[], editingId=null, pendingImage=null;
+
+const $=id=>document.getElementById(id);
+function openDB(){return new Promise((res,rej)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=e=>e.target.result.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});r.onsuccess=e=>{db=e.target.result;res()};r.onerror=()=>rej(r.error)})}
+function tx(mode){return db.transaction(STORE,mode).objectStore(STORE)}
+function getAll(){return new Promise((res,rej)=>{let r=tx('readonly').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function put(c){return new Promise((res,rej)=>{let r=tx('readwrite').put(c);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function del(id){return new Promise((res,rej)=>{let r=tx('readwrite').delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+async function refresh(){cards=await getAll(); renderFilters(); render()}
+function uniq(k){return [...new Set(cards.map(c=>c[k]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'))}
+function fillSelect(id,vals){let s=$(id), cur=s.value;s.innerHTML='<option value="">すべて</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join('');if(vals.includes(cur))s.value=cur}
+function renderFilters(){fillSelect('series',uniq('series'));fillSelect('type',uniq('type'));fillSelect('brand',uniq('brand'));fillSelect('rarity',uniq('rarity'))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function render(){
+ const q=$('search').value.trim().toLowerCase(), fs={series:$('series').value,promo:$('promo').value,type:$('type').value,brand:$('brand').value,rarity:$('rarity').value,trade:$('trade').value};
+ let out=cards.filter(c=>Object.values(c).some(v=>String(v??'').toLowerCase().includes(q)) && Object.entries(fs).every(([k,v])=>!v||c[k]===v));
+ $('count').innerHTML=`全 <b>${cards.length}</b>枚 ／ 表示 <b>${out.length}</b>枚`;
+ $('grid').innerHTML=out.length?out.map(c=>`
+ <article class="card">
+  <div class="thumb" onclick="showImage(${c.id})">${c.image?`<img src="${c.image}" alt="">`:'<span class="noimg">🃏</span>'}</div>
+  <div class="cardbody">
+   <div class="name">${esc(c.name||'名称未入力')}</div>
+   <div class="meta">${esc(c.series||'弾数未設定')} ${c.number?'・'+esc(c.number):''}</div>
+   <div class="chips">${[c.promo,c.type,c.brand,c.rarity,c.trade].filter(Boolean).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>
+   <div class="cardactions"><button class="small" onclick="editCard(${c.id})">編集</button><button class="small danger" onclick="deleteCard(${c.id})">削除</button></div>
+  </div>
+ </article>`).join(''):`<div class="empty" style="grid-column:1/-1"><div style="font-size:38px">🎀</div><b>まだカードがありません</b><br><span>「写真から追加」または「カード追加」から登録してね！</span></div>`;
+}
+function resetForm(){['name','f_series','f_type','f_brand','f_rarity','f_number','f_memo'].forEach(x=>$(x).value='');$('f_promo').value='通常';$('f_trade').value='';pendingImage=null;$('preview').innerHTML='<span class="noimg">🃏</span>'}
+function openAdd(){editingId=null;resetForm();$('dlgTitle').textContent='カードを追加';$('dlg').showModal()}
+async function editCard(id){let c=cards.find(x=>x.id===id);if(!c)return;editingId=id;pendingImage=c.image||null;
+ $('dlgTitle').textContent='カードを編集';$('name').value=c.name||'';$('f_series').value=c.series||'';$('f_promo').value=c.promo||'通常';$('f_type').value=c.type||'';$('f_brand').value=c.brand||'';$('f_rarity').value=c.rarity||'';$('f_trade').value=c.trade||'';$('f_number').value=c.number||'';$('f_memo').value=c.memo||'';
+ $('preview').innerHTML=pendingImage?`<img src="${pendingImage}">`:'<span class="noimg">🃏</span>';$('dlg').showModal()}
+async function deleteCard(id){if(confirm('このカードを削除しますか？')){await del(id);await refresh()}}
+function showImage(id){let c=cards.find(x=>x.id===id);if(c?.image){let w=window.open();w.document.write(`<title>${esc(c.name)}</title><body style="margin:0;background:#111;display:grid;place-items:center;min-height:100vh"><img src="${c.image}" style="max-width:100%;max-height:100vh;object-fit:contain"></body>`)}}
+function imageToData(file){return new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+async function addImages(files){
+ for(const file of files){if(!file.type.startsWith('image/'))continue;resetForm();pendingImage=await imageToData(file);$('preview').innerHTML=`<img src="${pendingImage}">`;
+  // ファイル名をカード名候補に
+  $('name').value=file.name.replace(/\.[^.]+$/,'');
+  $('dlgTitle').textContent='写真からカードを追加';$('dlg').showModal();
+  await new Promise(resolve=>$('dlg').addEventListener('close',resolve,{once:true}));
+ }
+}
+$('addBtn').onclick=openAdd;$('cancel').onclick=()=>$('dlg').close();
+$('save').onclick=async()=>{
+ let c={id:editingId||undefined,name:$('name').value.trim(),series:$('f_series').value.trim(),promo:$('f_promo').value,type:$('f_type').value.trim(),brand:$('f_brand').value.trim(),rarity:$('f_rarity').value.trim(),trade:$('f_trade').value,number:$('f_number').value.trim(),memo:$('f_memo').value.trim(),image:pendingImage||null};
+ if(!c.name&&!c.image){alert('カード名か画像を1つは入れてね！');return}
+ await put(c);$('dlg').close();await refresh()
+};
+$('photoInput').onchange=e=>{if(e.target.files.length)addImages([...e.target.files]);e.target.value=''};
+['search','series','promo','type','brand','rarity','trade'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+$('clearFilters').onclick=()=>{['series','promo','type','brand','rarity','trade'].forEach(id=>$(id).value='');$('search').value='';render()};
+openDB().then(refresh);
+</script>
+</body>
+</html>
